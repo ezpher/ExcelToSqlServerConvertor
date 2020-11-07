@@ -18,10 +18,10 @@ namespace ExcelToSqlServerConvertor
             DataTable = new DataTable();
         }
 
-        public void FillDataTable(ref ExcelSpreadsheet spreadSheet)
+        public void FillDataTable(ref ExcelSpreadsheet spreadSheet, ref IEnumerable<Row> worksheetRows)
         {
-            SetHeaderRows(ref spreadSheet);
-            SetDataRows(ref spreadSheet);
+            SetHeaderRows(ref spreadSheet, ref worksheetRows);
+            SetDataRows(ref spreadSheet, ref worksheetRows);
         }
 
 
@@ -31,20 +31,20 @@ namespace ExcelToSqlServerConvertor
             DateLong = 165,
         }
 
-        private void SetHeaderRows(ref ExcelSpreadsheet spreadSheet)
+        private void SetHeaderRows(ref ExcelSpreadsheet spreadSheet, ref IEnumerable<Row> worksheetRows)
         {
             // Set columns by getting the cell values in the first row, assuming that the first row has headers
-            foreach (Cell cell in spreadSheet.SheetDataRows.ElementAt(0))
+            foreach (Cell cell in worksheetRows.ElementAt(0))
             {
                 // add column names i.e. the cell names to the columns
                 DataTable.Columns.Add(cell.CellValue.InnerXml);
             }
         }
 
-        private void SetDataRows(ref ExcelSpreadsheet spreadSheet)
+        private void SetDataRows(ref ExcelSpreadsheet spreadSheet, ref IEnumerable<Row> worksheetRows)
         {
             //Write data to datatable; skip first row i.e. header row
-            foreach (Row row in spreadSheet.SheetDataRows.Skip(1))
+            foreach (Row row in worksheetRows.Skip(1))
             {
                 IEnumerable<Cell> rowCells = row.Descendants<Cell>();
                 DataRow newRow = DataTable.NewRow();

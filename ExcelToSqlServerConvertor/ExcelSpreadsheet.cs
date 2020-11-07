@@ -16,7 +16,7 @@ namespace ExcelToSqlServerConvertor
         public WorkbookPart WorkbookPart { get; private set; }
         public IEnumerable<Row> SheetDataRows { get; private set; }
 
-
+        // For filling spreadsheet and use case of 1 worksheet to 1 datatable mapping
         public bool FillSpreadSheet(string filePath)
         {
             FilePath = filePath;
@@ -61,6 +61,24 @@ namespace ExcelToSqlServerConvertor
             }
 
             return false;
+        }
+
+        public static IEnumerable<KeyValuePair<string, Worksheet>> GetNamedWorksheets(WorkbookPart workbookPart)
+        {
+            IEnumerable<Sheet> sheets = workbookPart.Workbook.GetFirstChild<Sheets>().Elements<Sheet>();
+            return sheets.Select(sheet => new KeyValuePair<string, Worksheet>(sheet.Name, GetWorkSheetFromSheet(workbookPart, sheet)));
+        }
+
+        public static Worksheet GetWorkSheetFromSheet(WorkbookPart workbookPart, Sheet sheet)
+        {
+            var worksheetPart = (WorksheetPart)workbookPart.GetPartById(sheet.Id.Value);
+            return worksheetPart.Worksheet;
+        }
+
+        public static IEnumerable<Row> GetWorkSheetRows(Worksheet worksheet)
+        {
+            SheetData sheetData = worksheet.GetFirstChild<SheetData>();
+            return sheetData.Descendants<Row>();
         }
     }
 

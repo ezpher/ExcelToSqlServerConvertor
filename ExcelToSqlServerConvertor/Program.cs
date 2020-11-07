@@ -24,10 +24,6 @@ namespace ExcelToSqlServerConvertor
                 string filePath = @"C:\_MyDotNetApplications\ExcelToSqlServerConvertor\Test.xlsx";
                 spreadSheet.FillSpreadSheet(filePath);
 
-                // Initialize a DataTable wrapper that will hold the excel data for writing to SQL Server Db
-                ExcelDataTable dataTable = new ExcelDataTable();
-                dataTable.FillDataTable(ref spreadSheet);
-
                 // Initialize ConnectionString to Db
                 string connectionStr = ConfigurationManager.ConnectionStrings["ExcelToSqlServerConvertorTestDb"].ToString();
 
@@ -36,15 +32,16 @@ namespace ExcelToSqlServerConvertor
                 {
                     try
                     {
-                        // make sure column mappings between source and destination tables are the same
-                        // does not work at the moment
-                        //foreach (DataColumn col in dt.Columns)
-                        //{
-                        //    bulkCopy.ColumnMappings.Add(col.ColumnName, col.ColumnName);
-                        //}
+                        // for each worksheet in spreadsheet fill datatable and write datatable to sql server
+                        foreach (KeyValuePair<string, Worksheet> namedWorksheet in ExcelSpreadsheet.GetNamedWorksheets(spreadSheet.WorkbookPart))
+                        {
+                            IEnumerable<Row> worksheetRows = ExcelSpreadsheet.GetWorkSheetRows(namedWorksheet.Value);
+                            var dataTable = new ExcelDataTable();
+                            dataTable.FillDataTable(ref spreadSheet, ref worksheetRows);
 
-                        bulkCopy.DestinationTableName = "dbo.Test";
-                        bulkCopy.WriteToServer(dataTable.DataTable);
+                            bulkCopy.DestinationTableName = namedWorksheet.Key;
+                            bulkCopy.WriteToServer(dataTable.DataTable);
+                        }
                     }
                     catch (Exception ex)
                     {
